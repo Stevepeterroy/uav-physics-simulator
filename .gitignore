@@ -31,3 +31,16 @@ data/
 *.pkl
 *.joblib
 *.npy
+
+# Private configuration and generated surrogate artifacts
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.onnx
+offline_pipeline/trained_models/
+.venv/
+__pycache__/
+*.pyc

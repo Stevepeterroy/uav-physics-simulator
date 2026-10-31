@@ -1,18 +1,17 @@
 # UAV Physics Simulator
 
-A quadcopter simulation prototype with a Rust physics library and a C++ bridge for Unreal Engine. The standalone core implements propeller thrust, altitude-dependent air density, body-axis aerodynamic drag, a four-motor mixer and RK4 state integration.
+A Rust quadcopter physics prototype with an Unreal Engine C++ bridge and an offline ONNX surrogate-model pipeline. This repository contains the current 0.3.0 core rather than the earlier standalone 0.1.0 snapshot.
 
 ## Engineering highlights
 
-- Rust `cdylib`/`rlib` physics core with C ABI entry points.
-- Generated C headers, interface-version checks and state-size checks.
-- Position, velocity, quaternion orientation and angular-velocity state.
-- Unreal plugin, drone Blueprint asset and telemetry component.
-- Unit tests for air density, drag, throttle, free fall and hover equilibrium.
+- Propeller thrust, altitude-dependent air density, body-axis drag and four-motor mixing.
+- RK4 position, velocity and quaternion integration.
+- Motor-temperature and structural-model experiments.
+- C ABI entry points, generated headers, version/size guards and telemetry integration.
+- ONNX model loading with canonical geometry-hash provenance checks.
+- Offline Python generators for aerodynamic and structural surrogate interface examples.
 
-## Build the core
-
-Install Rust through your preferred toolchain manager. The checked-in toolchain file selects the project version.
+## Build and test the core
 
 ```sh
 cd physics_core
@@ -20,14 +19,25 @@ cargo test --locked
 cargo build --release --locked
 ```
 
-The build generates `drone_ffi.h`. Synchronize it with the Unreal plugin's generated header before integration. The current build script does not copy the header automatically.
+The checked-in Rust toolchain file selects the compiler. The `ort` dependency downloads ONNX Runtime binaries during setup and requires network access on a fresh build. Keep `offline_pipeline/geometry/current_geometry.json` available: the build hashes it and embeds the hash in the core. `build.rs` generates the Unreal bridge header under `Public/Generated/`.
+
+## Optional offline surrogate examples
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -r offline_pipeline/requirements.txt
+.venv/bin/python offline_pipeline/cfd/train_aero.py
+.venv/bin/python offline_pipeline/fea/train_fea.py
+```
+
+These scripts construct small ONNX graphs with fixed coefficients and metadata. They are interface demonstrations, not models trained on measured CFD/FEA data. A constant `in_validated_envelope` output does not establish physical validation. Generated model artifacts stay local.
 
 ## Unreal integration
 
-Open `UE5Project/UAV_Simulator.uproject` with a compatible Unreal installation; its engine association is 5.8. Build the Rust library first. The bridge build rules currently cover Windows and Linux. Windows also requires the appropriate import library alongside the DLL; validate its generation for your toolchain. macOS library linking is not implemented in those rules. Editor binaries and Rust build outputs are excluded.
+Open `UE5Project/UAV_Simulator.uproject` with a compatible Unreal installation; its engine association is 5.8. Build the Rust library first. The bridge build rules currently cover Windows and Linux. Validate the Windows import-library step for the selected toolchain. macOS linking is not implemented in those build rules. Unreal editor compilation and runtime behavior are not verified by the standalone core checks.
 
-## Verification and limits
+## Status and limitations
 
-All 13 existing Rust unit tests passed during portfolio preparation. Unreal compilation and editor operation were not verified. The model uses fixed vehicle parameters and simplified aerodynamics; it is not validated against flight measurements. This is a simulation prototype, not a real-flight controller.
+The physics, thermal and structural parameters are simplified or placeholders and have not been validated against flight measurements. This is a research/simulation prototype, not a real-flight controller or a certified system. See `PUBLICATION.md` for checks performed on this update.
 
-The public repository is a clean source snapshot; the older private `UAV-Simulator` repository is retained separately.
+Do not commit credentials, private certificates, local datasets, generated model binaries or Unreal/Rust build outputs. The public portfolio copy is available at https://github.com/Stevepeterroy/uav-physics-simulator.
