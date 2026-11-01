@@ -44,3 +44,4 @@ offline_pipeline/trained_models/
 .venv/
 __pycache__/
 *.pyc
+*.sqlite3-*

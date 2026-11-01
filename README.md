@@ -1,5 +1,7 @@
 # UAV Physics Simulator
 
+Collaborative team project originating in `elkwire/UAV-Simulator`. This copy does not imply sole authorship; see `COLLABORATION.md`.
+
 A Rust quadcopter physics prototype with an Unreal Engine C++ bridge and an offline ONNX surrogate-model pipeline. This repository contains the current 0.3.0 core rather than the earlier standalone 0.1.0 snapshot.
 
 ## Engineering highlights
